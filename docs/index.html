@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTT — Roster</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+  body { font-family: system-ui, sans-serif; background: #0d0d0d; color: #eee; }
+  header { padding: 1.6rem 1rem 0.4rem; text-align: center }
+  h1 { font-size: 1.3rem; letter-spacing: .06em; color: #fff }
+  .sub { color: #666; font-size: .82rem; margin-top: .3rem }
+  .search { display:flex; justify-content:center; padding: 1rem }
+  input { background:#161616; border:1px solid #2a2a2a; color:#eee; padding:.5rem 1rem;
+          border-radius:8px; width:100%; max-width:400px; font-size:.9rem; outline:none }
+  input:focus { border-color:#444 }
+  table { width:100%; border-collapse:collapse; font-size:.84rem }
+  th { background:#111; color:#777; padding:.6rem .8rem; text-align:left;
+       position:sticky; top:0; border-bottom:1px solid #1e1e1e; cursor:pointer }
+  th:hover { color:#ccc }
+  td { padding:.5rem .8rem; border-bottom:1px solid #161616; vertical-align:middle }
+  tr:hover td { background:#131313 }
+  .ig { color:#7eb8f7; font-size:.78rem }
+  .bday-today td { background:#1a1500 !important }
+  .flag { font-size:1rem }
+  .empty { text-align:center; padding:3rem; color:#555 }
+</style>
+</head>
+<body>
+<header>
+  <h1>UNIVERSAL TWENTY TWO — ROSTER</h1>
+  <p class="sub" id="sub">Cargando...</p>
+</header>
+<div class="search">
+  <input id="q" type="search" placeholder="Buscar jugador, club, posición...">
+</div>
+<table>
+  <thead>
+    <tr>
+      <th onclick="sort('nombre')">Jugador</th>
+      <th onclick="sort('posicion')">Posición</th>
+      <th onclick="sort('club')">Club</th>
+      <th onclick="sort('nacionalidad')">Nac.</th>
+      <th onclick="sort('fecha_nacimiento')">Cumpleaños</th>
+      <th>Instagram</th>
+    </tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+
+<script>
+const RAW = "https://raw.githubusercontent.com/fabricionuove-alt/utt-monitor/main/jugadores.csv";
+let players = [], sortCol = "", sortAsc = true;
+
+function parseCSV(text) {
+  const [header, ...rows] = text.trim().split("\n");
+  const keys = header.split(",");
+  return rows.map(row => {
+    const vals = [];
+    let cur = "", inQ = false;
+    for (const c of row) {
+      if (c === '"') { inQ = !inQ; continue }
+      if (c === ',' && !inQ) { vals.push(cur); cur = ""; continue }
+      cur += c;
+    }
+    vals.push(cur);
+    return Object.fromEntries(keys.map((k, i) => [k.trim(), (vals[i] || "").trim()]));
+  });
+}
+
+function fmtBday(iso) {
+  if (!iso) return "";
+  const [, m, d] = iso.split("-");
+  const months = ["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  return `${parseInt(d)} ${months[parseInt(m)]}`;
+}
+
+function isToday(iso) {
+  if (!iso) return false;
+  const [, m, d] = iso.split("-");
+  const now = new Date();
+  return parseInt(m) === now.getMonth()+1 && parseInt(d) === now.getDate();
+}
+
+function render(data) {
+  const q = document.getElementById("q").value.toLowerCase();
+  const filtered = data.filter(p =>
+    !q || Object.values(p).some(v => v.toLowerCase().includes(q))
+  );
+  document.getElementById("sub").textContent =
+    `${filtered.length} jugador${filtered.length !== 1 ? "es" : ""} · ${new Date().toLocaleDateString("es")}`;
+  document.getElementById("body").innerHTML = filtered.length === 0
+    ? `<tr><td colspan="6" class="empty">Sin resultados</td></tr>`
+    : filtered.map(p => `
+      <tr class="${isToday(p.fecha_nacimiento) ? "bday-today" : ""}">
+        <td><strong>${p.nombre}</strong>${p.notable ? `<br><span style="color:#666;font-size:.75rem">${p.notable}</span>` : ""}</td>
+        <td>${p.posicion}</td>
+        <td>${p.club}</td>
+        <td>${p.nacionalidad}</td>
+        <td>${isToday(p.fecha_nacimiento) ? "🎂 " : ""}${fmtBday(p.fecha_nacimiento)}</td>
+        <td class="ig">${p.instagram ? "@" + p.instagram : ""}</td>
+      </tr>`).join("");
+}
+
+function sort(col) {
+  if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+  players.sort((a, b) => {
+    const av = a[col] || "", bv = b[col] || "";
+    return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  render(players);
+}
+
+fetch(RAW)
+  .then(r => r.text())
+  .then(t => { players = parseCSV(t); render(players); });
+
+document.getElementById("q").addEventListener("input", () => render(players));
+</script>
+</body>
+</html>
