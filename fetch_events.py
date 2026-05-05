@@ -1,27 +1,20 @@
 import requests
 import time
 from datetime import datetime, timedelta
-from config import FOOTBALL_API_KEY, LEAGUES
+from config import FOOTBALL_API_KEY, LEAGUES, CURRENT_SEASON
 from players import find_player, load_players
 
 BASE_URL = "https://v3.football.api-sports.io"
 HEADERS = {"x-apisports-key": FOOTBALL_API_KEY}
 
-# Delay entre requests para respetar el límite del plan gratuito (10 req/min)
-REQUEST_DELAY = 7  # segundos
+REQUEST_DELAY = 7  # segundos entre requests (plan gratuito: 10 req/min)
 
 
 def api_get(endpoint: str, params: dict) -> list:
-    """Request a la API con manejo de rate limit."""
     time.sleep(REQUEST_DELAY)
-    resp = requests.get(
-        f"{BASE_URL}/{endpoint}",
-        headers=HEADERS,
-        params=params,
-        timeout=10,
-    )
+    resp = requests.get(f"{BASE_URL}/{endpoint}", headers=HEADERS, params=params, timeout=10)
     if resp.status_code == 429:
-        print(f"  ⏳ Rate limit alcanzado, esperando 30s...")
+        print(f"  ⏳ Rate limit, esperando 30s...")
         time.sleep(30)
         resp = requests.get(f"{BASE_URL}/{endpoint}", headers=HEADERS, params=params, timeout=10)
     if resp.status_code != 200:
@@ -31,31 +24,27 @@ def api_get(endpoint: str, params: dict) -> list:
 
 
 def get_fixtures_for_date(league_id: int, date_str: str) -> list:
-    """Obtiene partidos finalizados de una liga en una fecha."""
     return api_get("fixtures", {"league": league_id, "date": date_str, "status": "FT"})
 
 
 def get_fixture_events(fixture_id: int) -> list:
-    """Obtiene todos los eventos de un partido."""
     return api_get("fixtures/events", {"fixture": fixture_id})
 
 
 def get_fixture_lineups(fixture_id: int) -> list:
-    """Obtiene las alineaciones de un partido (para detectar arqueros titulares)."""
     return api_get("fixtures/lineups", {"fixture": fixture_id})
 
 
+def get_transfers(player_api_id: int) -> list:
+    return api_get("transfers", {"player": player_api_id})
+
+
 def check_clean_sheet(fixture: dict, player: dict) -> bool:
-    """
-    Detecta si un arquero UTT mantuvo el arco en cero.
-    Verifica que el equipo del arquero no recibió goles.
-    """
     home_team = fixture["teams"]["home"]["name"]
     away_team = fixture["teams"]["away"]["name"]
     home_goals = fixture["goals"]["home"] or 0
     away_goals = fixture["goals"]["away"] or 0
     player_club = player.get("club", "").lower()
-
     if player_club in home_team.lower() and away_goals == 0:
         return True
     if player_club in away_team.lower() and home_goals == 0:
@@ -64,7 +53,6 @@ def check_clean_sheet(fixture: dict, player: dict) -> bool:
 
 
 def player_in_lineup(fixture_id: int, player: dict) -> bool:
-    """Verifica si un jugador jugó el partido revisando la alineación."""
     lineups = get_fixture_lineups(fixture_id)
     player_names = [player["name"].lower()] + [a.lower() for a in player["aliases"]]
     for team_lineup in lineups:
@@ -78,7 +66,7 @@ def player_in_lineup(fixture_id: int, player: dict) -> bool:
 def get_recent_events(days_back: int = 1) -> list:
     """
     Escanea partidos recientes en todas las ligas monitoreadas.
-    Detecta: goles, penales convertidos y arcos en cero de arqueros UTT.
+    Detecta: goles, penales, asistencias, tarjetas rojas y arcos en cero.
     """
     found_events = []
     seen_events = set()
@@ -88,9 +76,8 @@ def get_recent_events(days_back: int = 1) -> list:
         for i in range(days_back + 1)
     ]
 
-    # Cargar arqueros del roster para detección de clean sheets
     all_players = load_players()
-    goalkeepers = [p for p in all_players if p["position"].lower() == "arquero"]
+    goalkeepers = [p for p in all_players if "arquero" in p["position"].lower()]
 
     for league_name, league_id in LEAGUES.items():
         for date_str in dates:
@@ -99,51 +86,79 @@ def get_recent_events(days_back: int = 1) -> list:
 
             for fixture in fixtures:
                 fixture_id = fixture["fixture"]["id"]
-                home_team = fixture["teams"]["home"]["name"]
-                away_team = fixture["teams"]["away"]["name"]
                 fixture_info = {
-                    "home": home_team,
-                    "away": away_team,
+                    "home": fixture["teams"]["home"]["name"],
+                    "away": fixture["teams"]["away"]["name"],
                     "league": league_name,
                     "date": date_str,
                 }
 
-                # --- GOLES de jugadores UTT ---
                 events = get_fixture_events(fixture_id)
+
                 for event in events:
-                    if event["type"] != "Goal" or event["detail"] == "Own Goal":
-                        continue
+                    etype = event.get("type", "")
+                    detail = event.get("detail", "")
+                    minute = event["time"]["elapsed"]
                     player_name = (event["player"].get("name") or "").strip()
-                    if not player_name:
-                        continue
-                    player = find_player(player_name)
-                    if not player:
-                        continue
+                    assist_name = (event.get("assist", {}) or {}).get("name") or ""
 
-                    event_key = f"{fixture_id}_{player['name']}_{event['time']['elapsed']}"
-                    if event_key in seen_events:
-                        continue
-                    seen_events.add(event_key)
+                    # --- GOLES (incluye penales) ---
+                    if etype == "Goal" and detail != "Own Goal":
+                        player = find_player(player_name)
+                        if player:
+                            key = f"{fixture_id}_{player['name']}_{minute}_goal"
+                            if key not in seen_events:
+                                seen_events.add(key)
+                                found_events.append({
+                                    "player": player,
+                                    "event_type": "Goal",
+                                    "detail": detail,
+                                    "minute": minute,
+                                    "team": event["team"]["name"],
+                                    "fixture": fixture_info,
+                                })
+                                print(f"    ⚽ Gol: {player['name']} min.{minute}")
 
-                    found_events.append({
-                        "player": player,
-                        "event_type": "Goal",
-                        "detail": event["detail"],
-                        "minute": event["time"]["elapsed"],
-                        "team": event["team"]["name"],
-                        "fixture": fixture_info,
-                    })
-                    print(f"    ⚽ Gol UTT: {player['name']} min.{event['time']['elapsed']}")
+                    # --- ASISTENCIAS ---
+                    if etype == "Goal" and detail != "Own Goal" and assist_name:
+                        player = find_player(assist_name)
+                        if player:
+                            key = f"{fixture_id}_{player['name']}_{minute}_assist"
+                            if key not in seen_events:
+                                seen_events.add(key)
+                                found_events.append({
+                                    "player": player,
+                                    "event_type": "Assist",
+                                    "detail": "Assist",
+                                    "minute": minute,
+                                    "team": event["team"]["name"],
+                                    "fixture": fixture_info,
+                                })
+                                print(f"    🎯 Asistencia: {player['name']} min.{minute}")
 
-                # --- ARCO EN CERO de arqueros UTT ---
+                    # --- TARJETAS ROJAS ---
+                    if etype == "Card" and detail in ("Red Card", "Yellow Red Card"):
+                        player = find_player(player_name)
+                        if player:
+                            key = f"{fixture_id}_{player['name']}_{minute}_red"
+                            if key not in seen_events:
+                                seen_events.add(key)
+                                found_events.append({
+                                    "player": player,
+                                    "event_type": "RedCard",
+                                    "detail": detail,
+                                    "minute": minute,
+                                    "team": event["team"]["name"],
+                                    "fixture": fixture_info,
+                                })
+                                print(f"    🟥 Tarjeta roja: {player['name']} min.{minute}")
+
+                # --- ARCO EN CERO ---
                 for gk in goalkeepers:
-                    event_key = f"{fixture_id}_{gk['name']}_cleansheet"
-                    if event_key in seen_events:
-                        continue
-                    if check_clean_sheet(fixture, gk):
-                        # Verificar que el arquero efectivamente jugó
+                    key = f"{fixture_id}_{gk['name']}_cleansheet"
+                    if key not in seen_events and check_clean_sheet(fixture, gk):
                         if player_in_lineup(fixture_id, gk):
-                            seen_events.add(event_key)
+                            seen_events.add(key)
                             found_events.append({
                                 "player": gk,
                                 "event_type": "CleanSheet",
@@ -152,6 +167,34 @@ def get_recent_events(days_back: int = 1) -> list:
                                 "team": gk["club"],
                                 "fixture": fixture_info,
                             })
-                            print(f"    🧤 Arco en cero UTT: {gk['name']}")
+                            print(f"    🧤 Arco en cero: {gk['name']}")
 
     return found_events
+
+
+def get_birthday_events() -> list:
+    """Retorna jugadores UTT que cumplen años hoy."""
+    from datetime import date
+    today = date.today()
+    birthday_events = []
+    for player in load_players():
+        bday = player.get("fecha_nacimiento", "")
+        if not bday:
+            continue
+        try:
+            bd = date.fromisoformat(bday)
+            if bd.month == today.month and bd.day == today.day:
+                age = today.year - bd.year
+                birthday_events.append({
+                    "player": player,
+                    "event_type": "Birthday",
+                    "detail": "Birthday",
+                    "age": age,
+                    "minute": None,
+                    "team": player.get("club", ""),
+                    "fixture": {},
+                })
+                print(f"    🎂 Cumpleaños: {player['name']} ({age} años)")
+        except ValueError:
+            continue
+    return birthday_events

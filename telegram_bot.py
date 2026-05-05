@@ -1,39 +1,57 @@
 import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
+EMOJIS = {
+    "Goal":       ("⚽", "Gol"),
+    "Assist":     ("🎯", "Asistencia"),
+    "CleanSheet": ("🧤", "Arco en cero"),
+    "RedCard":    ("🟥", "Tarjeta roja"),
+    "Birthday":   ("🎂", "Cumpleaños"),
+    "Transfer":   ("✈️", "Transferencia"),
+    "Penalty":    ("🎯", "Penal convertido"),
+}
+
 
 def send_notification(event: dict, caption: str) -> bool:
-    """
-    Envía la notificación del evento al equipo ODS vía Telegram.
-    Retorna True si se envió correctamente.
-    """
     if not caption:
         return False
 
-    player = event["player"]
-    fixture = event["fixture"]
-    detail = event.get("detail", "Gol")
-    minute = event.get("minute", "?")
+    player   = event["player"]
+    fixture  = event.get("fixture", {})
+    etype    = event.get("event_type", "Goal")
+    detail   = event.get("detail", "")
+    minute   = event.get("minute")
 
-    event_type = event.get("event_type", "Goal")
-    if event_type == "CleanSheet":
-        event_emoji = "🧤"
-        event_label = "Arco en cero"
-    elif detail == "Penalty":
-        event_emoji = "🎯"
-        event_label = "Penal convertido"
+    # Emoji y label
+    if detail == "Penalty":
+        emoji, label = EMOJIS["Penalty"]
     else:
-        event_emoji = "⚽"
-        event_label = "Gol"
+        emoji, label = EMOJIS.get(etype, ("📌", etype))
 
-    message = (
-        f"🚨 <b>EVENTO UTT DETECTADO</b>\n\n"
-        f"👤 <b>{player['name']}</b>\n"
-        f"🏟 {player.get('club') or event['team']}\n"
-        f"{event_emoji} {event_label} — min. {minute}\n"
-        f"📅 {fixture['home']} vs {fixture['away']}\n"
-        f"🏆 {fixture['league']} | {fixture['date']}\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
+    # Cabecera del mensaje
+    header_lines = [
+        f"🚨 <b>EVENTO UTT DETECTADO</b>\n",
+        f"👤 <b>{player['name']}</b>",
+        f"🏟 {player.get('club') or event.get('team', '')}",
+        f"{emoji} {label}" + (f" — min. {minute}" if minute else ""),
+    ]
+
+    if fixture.get("home"):
+        header_lines += [
+            f"📅 {fixture['home']} vs {fixture['away']}",
+            f"🏆 {fixture['league']} | {fixture.get('date', '')}",
+        ]
+
+    if etype == "Birthday":
+        age = event.get("age")
+        header_lines.append(f"🎉 ¡{age} años!" if age else "🎉 ¡Feliz cumpleaños!")
+
+    if etype == "Transfer":
+        header_lines.append(f"➡️ {event.get('old_club', '?')} → {event.get('new_club', '?')}")
+
+    message = "\n".join(header_lines)
+    message += (
+        f"\n\n━━━━━━━━━━━━━━━━━━━━\n"
         f"📝 <b>Caption sugerido:</b>\n\n"
         f"{caption}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -42,16 +60,12 @@ def send_notification(event: dict, caption: str) -> bool:
 
     resp = requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-        json={
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": message,
-            "parse_mode": "HTML",
-        },
+        json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"},
         timeout=10,
     )
 
     if resp.status_code == 200:
-        print(f"  📲 Notificación enviada: {player['name']}")
+        print(f"  📲 Enviado: {player['name']} ({label})")
         return True
     else:
         print(f"  ❌ Error Telegram: {resp.status_code} — {resp.text}")
@@ -59,19 +73,14 @@ def send_notification(event: dict, caption: str) -> bool:
 
 
 def get_my_chat_id() -> None:
-    """
-    Helper para obtener tu chat_id de Telegram.
-    Usá esto después de enviarle cualquier mensaje al bot.
-    """
     resp = requests.get(
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates",
         timeout=10,
     )
-    data = resp.json()
-    updates = data.get("result", [])
+    updates = resp.json().get("result", [])
     if not updates:
         print("No se encontraron mensajes. Enviále cualquier mensaje al bot primero.")
         return
-    for update in updates:
-        chat = update.get("message", {}).get("chat", {})
-        print(f"Chat ID: {chat.get('id')} | Nombre: {chat.get('first_name')} {chat.get('last_name', '')}")
+    for u in updates:
+        chat = u.get("message", {}).get("chat", {})
+        print(f"Chat ID: {chat.get('id')} | {chat.get('first_name')} {chat.get('last_name', '')}")
