@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from players import load_players
+from player_intel import update_intel
 
 SEEN_FILE = Path(__file__).parent / "seen_news.json"
 
@@ -147,6 +148,16 @@ def get_news_events() -> list[dict]:
                 continue
 
             print(f"    📰 Noticia: {art['title'][:60]}...")
+
+            # Actualizar intel del jugador con la noticia
+            if player.get("position") != "Agencia":
+                update_intel(
+                    player=player,
+                    info_type="news",
+                    content=art["title"],
+                    source=art["source"],
+                )
+
             found.append({
                 "player": player,
                 "event_type": "News",

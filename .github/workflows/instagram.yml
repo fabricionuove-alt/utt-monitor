@@ -1,14 +1,14 @@
-name: UTT Noticias de Prensa
+name: UTT Instagram Monitor
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # cada 6 horas
+    - cron: "0 */8 * * *"   # cada 8 horas
   workflow_dispatch:
 
 jobs:
-  news:
+  instagram:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: write
 
@@ -22,17 +22,17 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Buscar noticias
+      - name: Monitorear Instagram
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python bot_core.py --news
+        run: python bot_core.py --instagram
 
-      - name: Guardar noticias vistas
+      - name: Guardar estado y perfiles
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add seen_news.json intel/ 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "Actualizar noticias + intel jugadores [bot]"
+          git add seen_instagram.json intel/ 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "Actualizar intel jugadores + Instagram [bot]"
           git push

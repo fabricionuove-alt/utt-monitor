@@ -1,5 +1,6 @@
 import anthropic
 from config import ANTHROPIC_API_KEY
+from player_intel import get_intel_summary, update_intel
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
@@ -99,6 +100,20 @@ def generate_caption(event: dict):
     if event.get("detail") == "Own Goal":
         return None
 
+    # Enriquecer el evento con intel del jugador y actualizar el perfil
+    player = event["player"]
+    event_type = event.get("event_type", "")
+    intel_summary = get_intel_summary(player["name"])
+
+    # Actualizar intel con el evento actual
+    if event_type not in ("News", "InstagramPost", "Birthday"):
+        update_intel(
+            player=player,
+            info_type="match_event",
+            content=build_event_description(event),
+            source=event.get("fixture", {}).get("league", ""),
+        )
+
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=300,
@@ -112,7 +127,10 @@ def generate_caption(event: dict):
         messages=[
             {
                 "role": "user",
-                "content": f"Escribí el caption para este evento:\n\n{build_event_description(event)}",
+                "content": (
+                    f"Escribí el caption para este evento:\n\n{build_event_description(event)}"
+                    + (f"\n\n{intel_summary}" if intel_summary else "")
+                ),
             }
         ],
     )

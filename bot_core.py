@@ -2,6 +2,7 @@ import sys
 from datetime import datetime
 from fetch_events import get_recent_events, get_birthday_events
 from fetch_news import get_news_events
+from fetch_instagram import get_instagram_events
 from generate_caption import generate_caption
 from telegram_bot import send_notification, get_my_chat_id
 
@@ -36,6 +37,24 @@ def check_news():
         return
 
     print(f"\n  📰 {len(events)} noticia(s) encontrada(s). Generando captions...\n")
+    for event in events:
+        caption = generate_caption(event)
+        if caption:
+            send_notification(event, caption)
+
+
+def check_instagram():
+    """Revisa posts nuevos de los jugadores UTT en Instagram."""
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    print(f"\n[{now}] 📸 Revisando Instagram de jugadores UTT...")
+
+    events = get_instagram_events()
+
+    if not events:
+        print("  Sin posts nuevos.")
+        return
+
+    print(f"\n  📸 {len(events)} post(s) nuevo(s). Generando captions...\n")
     for event in events:
         caption = generate_caption(event)
         if caption:
@@ -141,6 +160,8 @@ if __name__ == "__main__":
         setup_telegram()
     elif "--birthdays" in args:
         check_birthdays()
+    elif "--instagram" in args:
+        check_instagram()
     elif "--news" in args:
         check_news()
     elif "--check" in args:

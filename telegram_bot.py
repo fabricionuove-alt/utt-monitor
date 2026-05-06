@@ -9,7 +9,8 @@ EMOJIS = {
     "Birthday":   ("🎂", "Cumpleaños"),
     "Transfer":   ("✈️", "Transferencia"),
     "Penalty":    ("🎯", "Penal convertido"),
-    "News":       ("📰", "Prensa"),
+    "News":          ("📰", "Prensa"),
+    "InstagramPost": ("📸", "Post de Instagram"),
 }
 
 
@@ -52,6 +53,11 @@ def send_notification(event: dict, caption: str) -> bool:
 
     if etype == "News":
         header_lines.append(f"🔗 <a href=\"{event.get('news_url', '')}\">Ver noticia</a> — {event.get('news_source', '')}")
+
+    if etype == "InstagramPost":
+        post_preview = (event.get("post_caption") or "")[:120]
+        header_lines.append(f"💬 \"{post_preview}...\"")
+        header_lines.append(f"🔗 <a href=\"{event.get('post_url', '')}\">Ver post</a>")
 
     message = "\n".join(header_lines)
     message += (
