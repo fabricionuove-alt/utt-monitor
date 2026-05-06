@@ -9,6 +9,7 @@ EMOJIS = {
     "Birthday":   ("🎂", "Cumpleaños"),
     "Transfer":   ("✈️", "Transferencia"),
     "Penalty":    ("🎯", "Penal convertido"),
+    "News":       ("📰", "Prensa"),
 }
 
 
@@ -48,6 +49,9 @@ def send_notification(event: dict, caption: str) -> bool:
 
     if etype == "Transfer":
         header_lines.append(f"➡️ {event.get('old_club', '?')} → {event.get('new_club', '?')}")
+
+    if etype == "News":
+        header_lines.append(f"🔗 <a href=\"{event.get('news_url', '')}\">Ver noticia</a> — {event.get('news_source', '')}")
 
     message = "\n".join(header_lines)
     message += (

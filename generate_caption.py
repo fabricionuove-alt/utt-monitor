@@ -78,6 +78,16 @@ def build_event_description(event: dict) -> str:
         old_club = event.get("old_club", "")
         action = f"fue transferido de {old_club} a {new_club}. Escribí un post de bienvenida al nuevo club."
 
+    elif event_type == "News":
+        title = event.get("news_title", "")
+        source = event.get("news_source", "")
+        action = (
+            f"fue mencionado en la prensa deportiva. "
+            f"Titular de la noticia: \"{title}\" ({source}). "
+            f"Escribí un caption corto reaccionando positivamente a la cobertura mediática, "
+            f"como si UTT estuviera orgulloso de la visibilidad del jugador."
+        )
+
     else:
         action = f"tuvo un evento destacado: {detail}."
 
