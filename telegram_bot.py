@@ -1,5 +1,36 @@
+import json
 import requests
+from datetime import datetime, timezone
+from pathlib import Path
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+
+CAPTIONS_LOG = Path(__file__).parent / "captions_log.json"
+
+
+def _log_caption(event: dict, caption: str) -> None:
+    log = []
+    if CAPTIONS_LOG.exists():
+        try:
+            log = json.loads(CAPTIONS_LOG.read_text(encoding="utf-8"))
+        except Exception:
+            log = []
+    player = event["player"]
+    fixture = event.get("fixture", {})
+    log.insert(0, {
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "player": player["name"],
+        "club": player.get("club", ""),
+        "instagram": player.get("instagram", ""),
+        "event_type": event.get("event_type", ""),
+        "detail": event.get("detail", ""),
+        "minute": event.get("minute"),
+        "fixture": f"{fixture.get('home','')} vs {fixture.get('away','')}".strip(" vs"),
+        "league": fixture.get("league", ""),
+        "caption": caption,
+    })
+    CAPTIONS_LOG.write_text(
+        json.dumps(log[:200], ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 EMOJIS = {
     "Goal":       ("⚽", "Gol"),
@@ -75,6 +106,7 @@ def send_notification(event: dict, caption: str) -> bool:
     )
 
     if resp.status_code == 200:
+        _log_caption(event, caption)
         print(f"  📲 Enviado: {player['name']} ({label})")
         return True
     else:
