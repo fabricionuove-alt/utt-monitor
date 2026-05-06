@@ -3,7 +3,7 @@ name: UTT Monitor
 on:
   schedule:
     - cron: "0 */4 * * *"   # partidos: cada 4 horas
-    - cron: "0 9 * * *"     # cumpleaños: todos los días a las 9am UTC
+    - cron: "0 9 * * *"     # cumpleaños + fixtures: todos los días a las 9am UTC
   workflow_dispatch:
     inputs:
       mode:
@@ -18,6 +18,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */4 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,11 +34,22 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python bot_core.py --${{ inputs.mode || 'check' }}
+      - name: Regenerar dashboard
+        run: python generate_roster_html.py
+      - name: Commit y push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add captions_log.json intel/ docs/index.html 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "Actualizar eventos + dashboard [bot]"
+          git push
 
   birthdays:
     if: github.event.schedule == '0 9 * * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -50,3 +63,16 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python bot_core.py --birthdays
+      - name: Fetch partidos hoy y mañana
+        env:
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+        run: python fetch_today_fixtures.py
+      - name: Regenerar dashboard
+        run: python generate_roster_html.py
+      - name: Commit y push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add captions_log.json today_fixtures.json intel/ docs/index.html 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "Actualizar cumpleaños + partidos + dashboard [bot]"
+          git push
