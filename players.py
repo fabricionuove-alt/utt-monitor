@@ -18,6 +18,7 @@ def load_players() -> list:
                 "nationality": row["nacionalidad"].strip(),
                 "instagram": row["instagram"].strip(),
                 "notable": row["notable"].strip(),
+                "fecha_nacimiento": row.get("fecha_nacimiento", "").strip(),
             })
     return players
 
