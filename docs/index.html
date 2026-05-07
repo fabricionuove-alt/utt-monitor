@@ -53,6 +53,14 @@ header{
 .header-right{text-align:right}
 .header-date{font-size:.78rem;font-weight:600;color:var(--text)}
 .header-updated{font-size:.65rem;color:var(--muted);margin-top:.1rem}
+.header-countdown{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-size:.6rem;color:var(--gold);margin-top:.25rem;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.06em;
+}
+.countdown-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);
+  animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
 /* ── BIRTHDAY ALERT ── */
 .bday-alert{
@@ -124,6 +132,8 @@ section{padding:1.25rem 1rem 0}
 }
 .card-meta{font-size:.72rem;color:var(--muted2);margin-top:.1rem;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0}
+.card-date{font-size:.6rem;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 .tag{
   font-family:'Barlow Condensed',sans-serif;
   font-size:.6rem;font-weight:700;letter-spacing:.1em;
@@ -244,6 +254,10 @@ section{padding:1.25rem 1rem 0}
   <div class="header-right">
     <div class="header-date">Jue 7 May</div>
     <div class="header-updated">Act. 07/05/2026</div>
+    <div class="header-countdown">
+      <span class="countdown-dot"></span>
+      próx. en <span id="countdown">--:--:--</span>
+    </div>
   </div>
 </header>
 
@@ -259,12 +273,87 @@ section{padding:1.25rem 1rem 0}
 <section>
   <div class="section-header">
     <span class="section-title">Para postear</span>
+    <span class="section-count">3</span>
   </div>
-  <div class="empty-state">
-    <div class="empty-icon">📭</div>
-    <div>Sin eventos recientes</div>
-    <div class="empty-sub">El bot te avisa cuando haya algo</div>
+  
+<div class="card">
+  <div class="card-top" style="border-left:3px solid #22c55e">
+    <div class="card-left">
+      <img class='avatar' src='https://unavatar.io/instagram/em10buendia' onerror="this.style.display='none'" loading='lazy'>
+      <div class="card-info">
+        <div class="card-name">Emiliano Buendía</div>
+        <div class="card-meta">Premier League · Aston Villa vs Tottenham</div>
+      </div>
+    </div>
+    <div class="card-right">
+      <span class='card-date'>hace 4d</span>
+      <span class="tag" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">GOL</span>
+    </div>
   </div>
+  <div class="card-caption">Incluso en la derrota, dejó su huella. 💜<br><br>Buendía anotó para el Aston Villa en el último minuto ante el Tottenham. Villa cayó 2-1, pero Emi estuvo ahí cuando el equipo lo necesitaba.<br><br>Siempre presente.<br><br>#EmilianoBuendia #AstonVilla #PremierLeague #UTT</div>
+  <button class="copy-btn" onclick="copy(`Incluso en la derrota, dejó su huella. 💜
+
+Buendía anotó para el Aston Villa en el último minuto ante el Tottenham. Villa cayó 2-1, pero Emi estuvo ahí cuando el equipo lo necesitaba.
+
+Siempre presente.
+
+#EmilianoBuendia #AstonVilla #PremierLeague #UTT`,this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+    Copiar caption
+  </button>
+</div>
+<div class="card">
+  <div class="card-top" style="border-left:3px solid #6b7280">
+    <div class="card-left">
+      <img class='avatar' src='https://unavatar.io/instagram/emi_martinez26' onerror="this.style.display='none'" loading='lazy'>
+      <div class="card-info">
+        <div class="card-name">Emiliano Martínez</div>
+        <div class="card-meta">Premier League · Aston Villa vs Tottenham</div>
+      </div>
+    </div>
+    <div class="card-right">
+      <span class='card-date'>hace 4d</span>
+      <span class="tag" style="background:#6b728022;color:#6b7280;border:1px solid #6b728044">PRENSA</span>
+    </div>
+  </div>
+  <div class="card-caption">El Dibu habló. 🧤<br><br>Emiliano Martínez reconoció el bajo nivel del equipo ante el Tottenham y salió al frente: &quot;Fue la peor actuación del año, tenemos que reaccionar&quot;.<br><br>Líder dentro y fuera del campo. 📺 Su documental de Netflix llega el 28 de mayo.<br><br>#DibuMartinez #AstonVilla #PremierLeague #UTT</div>
+  <button class="copy-btn" onclick="copy(`El Dibu habló. 🧤
+
+Emiliano Martínez reconoció el bajo nivel del equipo ante el Tottenham y salió al frente: "Fue la peor actuación del año, tenemos que reaccionar".
+
+Líder dentro y fuera del campo. 📺 Su documental de Netflix llega el 28 de mayo.
+
+#DibuMartinez #AstonVilla #PremierLeague #UTT`,this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+    Copiar caption
+  </button>
+</div>
+<div class="card">
+  <div class="card-top" style="border-left:3px solid #6b7280">
+    <div class="card-left">
+      <img class='avatar' src='https://unavatar.io/instagram/emi_martinez26' onerror="this.style.display='none'" loading='lazy'>
+      <div class="card-info">
+        <div class="card-name">Emiliano Martínez</div>
+        <div class="card-meta">UEFA Europa League · Aston Villa vs Nottingham Forest</div>
+      </div>
+    </div>
+    <div class="card-right">
+      <span class='card-date'>hoy</span>
+      <span class="tag" style="background:#6b728022;color:#6b7280;border:1px solid #6b728044">PRENSA</span>
+    </div>
+  </div>
+  <div class="card-caption">Semifinal de Europa. Esta noche, Villa Park. 🏟️<br><br>El Dibu y el Aston Villa van por la remontada ante el Nottingham Forest. Necesitan dos goles para llegar a la final de Estambul.<br><br>Una noche para la historia. 🔥<br><br>#DibuMartinez #AstonVilla #UEFAEuropaLeague #UTT</div>
+  <button class="copy-btn" onclick="copy(`Semifinal de Europa. Esta noche, Villa Park. 🏟️
+
+El Dibu y el Aston Villa van por la remontada ante el Nottingham Forest. Necesitan dos goles para llegar a la final de Estambul.
+
+Una noche para la historia. 🔥
+
+#DibuMartinez #AstonVilla #UEFAEuropaLeague #UTT`,this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+    Copiar caption
+  </button>
+</div>
 </section>
 
 <section>
@@ -333,6 +422,29 @@ function copy(text, btn){
     setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove("done"); }, 2500);
   });
 }
+
+// ── Countdown al próximo refresh (cron cada 4h UTC: 0,4,8,12,16,20) ──────
+(function(){
+  function nextRun(){
+    const now = new Date();
+    const ms = now.getTime();
+    const dayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const elapsed = ms - dayStart;
+    const interval = 4 * 3600 * 1000;
+    const next = dayStart + Math.ceil(elapsed / interval) * interval;
+    return next - ms;
+  }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    let s = Math.max(0, Math.round(nextRun() / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60);   s -= m * 60;
+    const el = document.getElementById('countdown');
+    if(el) el.textContent = pad(h)+':'+pad(m)+':'+pad(s);
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>

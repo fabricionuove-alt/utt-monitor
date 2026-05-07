@@ -41,12 +41,12 @@ for p in players:
         pass
 bdays_soon.sort(key=lambda x: x["days"])
 
-# ── Captions recientes (últimas 48hs) ─────────────────────────────────────
+# ── Captions recientes (últimos 7 días) ───────────────────────────────────
 recent_caps = []
 for c in captions:
     try:
         cap_date = date.fromisoformat(c["date"])
-        if (TODAY - cap_date).days <= 1:
+        if (TODAY - cap_date).days <= 7:
             recent_caps.append(c)
     except Exception:
         pass
@@ -99,9 +99,18 @@ def caption_card(c):
     meta_parts = [p for p in [league, fixture] if p]
     meta_str = " · ".join(meta_parts)
 
+    # Date badge (days ago)
+    try:
+        cap_date = date.fromisoformat(c["date"])
+        days_ago = (TODAY - cap_date).days
+        date_badge = "hoy" if days_ago == 0 else (f"ayer" if days_ago == 1 else f"hace {days_ago}d")
+    except Exception:
+        date_badge = ""
+
     avatar_html = (f"<img class='avatar' src='{avatar}' onerror=\"this.style.display='none'\" loading='lazy'>"
                    if avatar else f"<div class='avatar-placeholder'>{emoji}</div>")
     meta_content = meta_str if meta_str else "&nbsp;"
+    date_html = f"<span class='card-date'>{date_badge}</span>" if date_badge else ""
     return f"""
 <div class="card">
   <div class="card-top" style="border-left:3px solid {color}">
@@ -112,7 +121,10 @@ def caption_card(c):
         <div class="card-meta">{meta_content}</div>
       </div>
     </div>
-    <span class="tag" style="background:{color}22;color:{color};border:1px solid {color}44">{label}</span>
+    <div class="card-right">
+      {date_html}
+      <span class="tag" style="background:{color}22;color:{color};border:1px solid {color}44">{label}</span>
+    </div>
   </div>
   <div class="card-caption">{cap_html}</div>
   <button class="copy-btn" onclick="copy(`{cap_raw}`,this)">
@@ -309,6 +321,14 @@ header{{
 .header-right{{text-align:right}}
 .header-date{{font-size:.78rem;font-weight:600;color:var(--text)}}
 .header-updated{{font-size:.65rem;color:var(--muted);margin-top:.1rem}}
+.header-countdown{{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-size:.6rem;color:var(--gold);margin-top:.25rem;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.06em;
+}}
+.countdown-dot{{width:5px;height:5px;border-radius:50%;background:var(--gold);
+  animation:blink 1.4s ease-in-out infinite}}
+@keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:.2}}}}
 
 /* ── BIRTHDAY ALERT ── */
 .bday-alert{{
@@ -380,6 +400,8 @@ section{{padding:1.25rem 1rem 0}}
 }}
 .card-meta{{font-size:.72rem;color:var(--muted2);margin-top:.1rem;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
+.card-right{{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0}}
+.card-date{{font-size:.6rem;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.05em;text-transform:uppercase}}
 .tag{{
   font-family:'Barlow Condensed',sans-serif;
   font-size:.6rem;font-weight:700;letter-spacing:.1em;
@@ -500,6 +522,10 @@ section{{padding:1.25rem 1rem 0}}
   <div class="header-right">
     <div class="header-date">{date_str}</div>
     <div class="header-updated">Act. {updated}</div>
+    <div class="header-countdown">
+      <span class="countdown-dot"></span>
+      próx. en <span id="countdown">--:--:--</span>
+    </div>
   </div>
 </header>
 
@@ -514,6 +540,29 @@ function copy(text, btn){{
     setTimeout(()=>{{ btn.innerHTML=orig; btn.classList.remove("done"); }}, 2500);
   }});
 }}
+
+// ── Countdown al próximo refresh (cron cada 4h UTC: 0,4,8,12,16,20) ──────
+(function(){{
+  function nextRun(){{
+    const now = new Date();
+    const ms = now.getTime();
+    const dayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const elapsed = ms - dayStart;
+    const interval = 4 * 3600 * 1000;
+    const next = dayStart + Math.ceil(elapsed / interval) * interval;
+    return next - ms;
+  }}
+  function pad(n){{ return String(n).padStart(2,'0'); }}
+  function tick(){{
+    let s = Math.max(0, Math.round(nextRun() / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60);   s -= m * 60;
+    const el = document.getElementById('countdown');
+    if(el) el.textContent = pad(h)+':'+pad(m)+':'+pad(s);
+  }}
+  tick();
+  setInterval(tick, 1000);
+}})();
 </script>
 </body>
 </html>"""

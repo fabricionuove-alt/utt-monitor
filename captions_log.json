@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "date": "2026-04-25",
+    "player": "Alexander Isak",
+    "instagram": "alex_isak",
+    "event_type": "Goal",
+    "league": "Premier League",
+    "fixture": "Liverpool vs Crystal Palace",
+    "caption": "De regreso. Y con gol. ⚡\n\nIsak volvió al gol en Anfield después de meses fuera por fractura de peroné. Liverpool 3-1 Crystal Palace.\n\nLe costó, pero el sueco nunca se rinde.\n\n#AlexanderIsak #Liverpool #PremierLeague #UTT"
+  },
+  {
+    "date": "2026-05-03",
+    "player": "Emiliano Buendía",
+    "instagram": "em10buendia",
+    "event_type": "Goal",
+    "league": "Premier League",
+    "fixture": "Aston Villa vs Tottenham",
+    "caption": "Incluso en la derrota, dejó su huella. 💜\n\nBuendía anotó para el Aston Villa en el último minuto ante el Tottenham. Villa cayó 2-1, pero Emi estuvo ahí cuando el equipo lo necesitaba.\n\nSiempre presente.\n\n#EmilianoBuendia #AstonVilla #PremierLeague #UTT"
+  },
+  {
+    "date": "2026-05-03",
+    "player": "Emiliano Martínez",
+    "instagram": "emi_martinez26",
+    "event_type": "News",
+    "league": "Premier League",
+    "fixture": "Aston Villa vs Tottenham",
+    "caption": "El Dibu habló. 🧤\n\nEmiliano Martínez reconoció el bajo nivel del equipo ante el Tottenham y salió al frente: \"Fue la peor actuación del año, tenemos que reaccionar\".\n\nLíder dentro y fuera del campo. 📺 Su documental de Netflix llega el 28 de mayo.\n\n#DibuMartinez #AstonVilla #PremierLeague #UTT"
+  },
+  {
+    "date": "2026-05-07",
+    "player": "Emiliano Martínez",
+    "instagram": "emi_martinez26",
+    "event_type": "News",
+    "league": "UEFA Europa League",
+    "fixture": "Aston Villa vs Nottingham Forest",
+    "caption": "Semifinal de Europa. Esta noche, Villa Park. 🏟️\n\nEl Dibu y el Aston Villa van por la remontada ante el Nottingham Forest. Necesitan dos goles para llegar a la final de Estambul.\n\nUna noche para la historia. 🔥\n\n#DibuMartinez #AstonVilla #UEFAEuropaLeague #UTT"
+  }
+]
