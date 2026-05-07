@@ -3,140 +3,334 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>UTT — Daily</title>
+<title>UTT — Daily Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0a;--surface:#141414;--border:#222;
-  --text:#e5e5e5;--muted:#666;--accent:#3b82f6;
-  --green:#10b981;--yellow:#f59e0b;--red:#ef4444;
+  --bg:#080808;
+  --surface:#111111;
+  --surface2:#1a1a1a;
+  --border:#232323;
+  --border2:#2e2e2e;
+  --text:#f0f0f0;
+  --muted:#666;
+  --muted2:#888;
+  --gold:#e8b84b;
+  --gold-dim:#e8b84b22;
 }
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);
-      color:var(--text);max-width:600px;margin:0 auto;padding-bottom:2rem}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  max-width:480px;
+  margin:0 auto;
+  padding-bottom:3rem;
+  -webkit-font-smoothing:antialiased;
+}
 
-header{padding:1.2rem 1rem .6rem;display:flex;justify-content:space-between;align-items:center;
-        border-bottom:1px solid var(--border)}
-.logo{font-weight:800;font-size:1.1rem;letter-spacing:.08em}
-.updated{font-size:.72rem;color:var(--muted)}
+/* ── HEADER ── */
+header{
+  padding:1.25rem 1rem 1rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg);
+  z-index:10;
+}
+.logo-wrap{display:flex;align-items:center;gap:.6rem}
+.logo-img{height:28px;width:auto;filter:brightness(0) invert(1)}
+.logo-divider{width:1px;height:18px;background:var(--border2)}
+.logo-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.7rem;letter-spacing:.18em;
+  color:var(--muted2);font-weight:600;text-transform:uppercase
+}
+.header-right{text-align:right}
+.header-date{font-size:.78rem;font-weight:600;color:var(--text)}
+.header-updated{font-size:.65rem;color:var(--muted);margin-top:.1rem}
 
-section{padding:1rem 1rem 0}
-h2{font-size:.75rem;font-weight:700;letter-spacing:.1em;color:var(--muted);
-    text-transform:uppercase;margin-bottom:.75rem}
+/* ── BIRTHDAY ALERT ── */
+.bday-alert{
+  margin:1rem 1rem 0;
+  background:linear-gradient(135deg,#1a1200 0%,#141000 100%);
+  border:1px solid #3d2e00;
+  border-radius:12px;
+  display:flex;align-items:center;gap:.9rem;
+  padding:1rem 1.1rem;
+}
+.bday-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)}
+.bday-emoji{font-size:2.2rem;flex-shrink:0}
+.bday-alert-name{font-weight:700;font-size:.95rem;color:#fff}
+.bday-alert-ig{font-size:.78rem;color:var(--gold);margin-top:.2rem}
 
-/* Alert cumpleaños hoy */
-.alert-bday{background:#1a1000;border:1px solid #3a2500;border-radius:10px;
-             display:flex;align-items:center;gap:.8rem;padding:1rem;margin:1rem 1rem 0}
-.alert-icon{font-size:2rem}
-.alert-name{font-weight:700;font-size:1rem}
-.alert-ig{color:var(--accent);font-size:.82rem;margin-top:.2rem}
+/* ── SECTIONS ── */
+section{padding:1.25rem 1rem 0}
+.section-header{
+  display:flex;align-items:center;gap:.6rem;
+  margin-bottom:.9rem;
+}
+.section-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.7rem;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;
+  color:var(--muted2);
+}
+.section-count{
+  background:var(--gold);
+  color:#000;
+  font-size:.62rem;font-weight:700;
+  border-radius:99px;
+  padding:.1rem .45rem;
+  font-family:'Barlow Condensed',sans-serif;
+  letter-spacing:.05em;
+}
 
-/* Caption cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
-       padding:1rem;margin-bottom:.75rem}
-.card-header{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:.75rem}
-.card-emoji{font-size:1.5rem;flex-shrink:0}
-.card-name{font-weight:700;font-size:.95rem}
-.card-meta{font-size:.75rem;color:var(--muted);margin-top:.15rem}
-.card-ig{margin-left:auto;font-size:.78rem;color:var(--accent);white-space:nowrap}
-.card-caption{font-size:.88rem;line-height:1.6;color:#ccc;
-               background:#0d0d0d;border-radius:8px;padding:.75rem;
-               white-space:pre-line;margin-bottom:.75rem}
-.copy-btn{width:100%;padding:.65rem;background:var(--accent);color:#fff;
-           border:none;border-radius:8px;font-size:.88rem;font-weight:600;
-           cursor:pointer;transition:.15s}
-.copy-btn:active{opacity:.8}
-.copy-btn.done{background:var(--green)}
+/* ── CAPTION CARDS ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:.75rem;
+}
+.card-top{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+  padding:.9rem 1rem .75rem;
+  background:var(--surface2);
+}
+.card-left{display:flex;align-items:center;gap:.75rem;flex:1;min-width:0}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  object-fit:cover;flex-shrink:0;
+  border:1px solid var(--border2);
+}
+.avatar-placeholder{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.card-info{min-width:0}
+.card-name{
+  font-weight:600;font-size:.9rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-meta{font-size:.72rem;color:var(--muted2);margin-top:.1rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tag{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.6rem;font-weight:700;letter-spacing:.1em;
+  padding:.25rem .5rem;border-radius:6px;
+  white-space:nowrap;flex-shrink:0;
+}
+.card-caption{
+  font-size:.85rem;line-height:1.65;
+  color:#c8c8c8;
+  padding:.85rem 1rem;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  white-space:pre-line;
+}
+.copy-btn{
+  width:100%;padding:.7rem 1rem;
+  background:var(--gold);color:#000;
+  border:none;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.85rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  transition:.15s;
+}
+.copy-btn:active{opacity:.85;transform:scale(.99)}
+.copy-btn.done{background:#22c55e;color:#fff}
 
-/* Fixtures */
-.fixture{background:var(--surface);border:1px solid var(--border);border-radius:10px;
-          padding:.9rem 1rem;margin-bottom:.6rem}
-.fixture-match{font-weight:700;font-size:.95rem}
-.vs{color:var(--muted);font-weight:400;margin:0 .3rem}
-.fixture-sub{font-size:.75rem;color:var(--muted);margin:.25rem 0 .4rem;
-              display:flex;align-items:center;gap:.5rem}
-.live{color:var(--red);font-weight:700;font-size:.72rem;
-       animation:blink 1.2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-.done{color:var(--muted)}
-.time{color:var(--yellow)}
-.fixture-players{font-size:.82rem;color:#aaa}
-.ig-s{color:var(--accent);font-size:.75rem}
+/* ── FIXTURES ── */
+.fixture-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:.9rem 1rem;
+  margin-bottom:.6rem;
+}
+.fixture-teams{
+  font-weight:700;font-size:.93rem;
+  margin-bottom:.4rem;
+}
+.vs{color:var(--muted);font-weight:400;margin:0 .3rem;font-size:.85rem}
+.fixture-bottom{
+  display:flex;align-items:center;gap:.5rem;
+  margin-bottom:.55rem;
+}
+.fixture-league{font-size:.72rem;color:var(--muted);}
+.badge-live{
+  font-size:.65rem;font-weight:700;color:#ef4444;
+  font-family:'Barlow Condensed',sans-serif;letter-spacing:.08em;
+  animation:blink 1.2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.badge-done{font-size:.68rem;color:var(--muted);font-family:'Barlow Condensed',sans-serif}
+.badge-time{
+  font-size:.72rem;font-weight:600;color:var(--gold);
+  font-family:'Barlow Condensed',sans-serif;
+}
+.fixture-players{
+  display:flex;flex-wrap:wrap;gap:.35rem;
+}
+.fp{
+  font-size:.78rem;color:#bbb;
+  display:flex;align-items:center;gap:.25rem;
+}
+.fp-ig{color:var(--gold);font-size:.72rem}
 
-/* Cumpleaños próximos */
-.bday-item{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;
-            border-bottom:1px solid var(--border)}
-.bday-item:last-child{border:none}
-.bday-icon{font-size:1.3rem}
-.bday-name{font-size:.88rem;font-weight:600}
-.bday-when{font-size:.75rem;color:var(--muted);margin-top:.1rem}
+/* ── BIRTHDAYS LIST ── */
+.bday-list{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.bday-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1rem;
+  border-bottom:1px solid var(--border);
+}
+.bday-row:last-child{border:none}
+.bday-row-left{display:flex;align-items:center;gap:.65rem}
+.bday-cake{font-size:1.1rem}
+.bday-row-name{font-size:.85rem;font-weight:600}
+.bday-row-meta{font-size:.7rem;color:var(--muted);margin-top:.1rem}
+.bday-days{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.78rem;font-weight:700;
+  color:var(--gold);
+  background:var(--gold-dim);
+  border:1px solid #e8b84b33;
+  padding:.2rem .55rem;border-radius:99px;
+}
 
-.empty{color:var(--muted);font-size:.85rem;padding:.5rem 0}
+/* ── EMPTY STATE ── */
+.empty-state{
+  text-align:center;
+  padding:2rem 1rem;
+  color:var(--muted);
+  font-size:.85rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.empty-icon{font-size:2rem;margin-bottom:.5rem}
+.empty-sub{font-size:.75rem;margin-top:.3rem;color:var(--muted)}
 </style>
 </head>
 <body>
+
 <header>
-  <span class="logo">UTT</span>
-  <span class="updated">Actualizado 07/05/2026</span>
+  <div class="logo-wrap">
+    <img class="logo-img"
+         src="https://universaltt.com/wp-content/uploads/2023/04/cropped-Recurso-3-1.png"
+         onerror="this.style.display='none'"
+         alt="UTT">
+    <div class="logo-divider"></div>
+    <span class="logo-label">Daily Board</span>
+  </div>
+  <div class="header-right">
+    <div class="header-date">Jue 7 May</div>
+    <div class="header-updated">Act. 07/05/2026</div>
+  </div>
 </header>
 
 
-<div class="alert-bday">
-  <span class="alert-icon">🎂</span>
-  <div>
-    <div class="alert-name">¡Hoy cumple 26 años Cristian Oyola!</div>
+<div class="bday-alert">
+  <span class='bday-emoji'>🎂</span>
+  <div class="bday-alert-text">
+    <div class="bday-alert-name">¡Cristian Oyola cumple 26 hoy! 🎉</div>
     
   </div>
 </div>
 
 <section>
-  <h2>📥 Para postear</h2>
-  <div class="empty">Sin eventos recientes. El bot avisará cuando haya algo.</div>
+  <div class="section-header">
+    <span class="section-title">Para postear</span>
+  </div>
+  <div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <div>Sin eventos recientes</div>
+    <div class="empty-sub">El bot te avisa cuando haya algo</div>
+  </div>
 </section>
 
 <section>
-  <h2>🏟️ Próximos partidos</h2>
-  <div class="empty">Sin partidos en los próximas 48hs.</div>
+  <div class="section-header">
+    <span class="section-title">Próximos partidos</span>
+  </div>
+  <div class="empty-state">
+    <div class="empty-icon">🏟️</div>
+    <div>Sin partidos en las próximas 48hs</div>
+  </div>
 </section>
 
 <section>
-  <h2>🗓️ Cumpleaños esta semana</h2>
-  
-<div class="bday-item">
-  <span class="bday-icon">🎂</span>
-  <div>
-    <div class="bday-name">Gelson Martins · 32 años</div>
-    <div class="bday-when">En 4 días · 11/05</div>
+  <div class="section-header">
+    <span class="section-title">Cumpleaños esta semana</span>
   </div>
-</div>
-<div class="bday-item">
-  <span class="bday-icon">🎂</span>
-  <div>
-    <div class="bday-name">Manuel Mónaco · 25 años</div>
-    <div class="bday-when">En 4 días · 11/05</div>
+  <div class="bday-list">
+<div class="bday-row">
+  <div class="bday-row-left">
+    <span class="bday-cake">🎂</span>
+    <div>
+      <div class="bday-row-name">Gelson Martins</div>
+      <div class="bday-row-meta">Cumple 32 · 11/05</div>
+    </div>
   </div>
+  <span class="bday-days">4d</span>
 </div>
-<div class="bday-item">
-  <span class="bday-icon">🎂</span>
-  <div>
-    <div class="bday-name">Nicolás Castro · 37 años</div>
-    <div class="bday-when">En 4 días · 11/05</div>
+<div class="bday-row">
+  <div class="bday-row-left">
+    <span class="bday-cake">🎂</span>
+    <div>
+      <div class="bday-row-name">Manuel Mónaco</div>
+      <div class="bday-row-meta">Cumple 25 · 11/05</div>
+    </div>
   </div>
+  <span class="bday-days">4d</span>
 </div>
-<div class="bday-item">
-  <span class="bday-icon">🎂</span>
-  <div>
-    <div class="bday-name">Adrián Sánchez · 28 años</div>
-    <div class="bday-when">En 7 días · 14/05</div>
+<div class="bday-row">
+  <div class="bday-row-left">
+    <span class="bday-cake">🎂</span>
+    <div>
+      <div class="bday-row-name">Nicolás Castro</div>
+      <div class="bday-row-meta">Cumple 37 · 11/05</div>
+    </div>
   </div>
+  <span class="bday-days">4d</span>
 </div>
+<div class="bday-row">
+  <div class="bday-row-left">
+    <span class="bday-cake">🎂</span>
+    <div>
+      <div class="bday-row-name">Adrián Sánchez</div>
+      <div class="bday-row-meta">Cumple 28 · 14/05</div>
+    </div>
+  </div>
+  <span class="bday-days">7d</span>
+</div></div>
 </section>
 
 <script>
 function copy(text, btn){
   navigator.clipboard.writeText(text).then(()=>{
-    btn.textContent = "✓ Copiado";
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copiado`;
     btn.classList.add("done");
-    setTimeout(()=>{ btn.textContent="Copiar caption"; btn.classList.remove("done"); }, 3000);
+    setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove("done"); }, 2500);
   });
 }
 </script>
