@@ -1,8 +1,7 @@
 {
-  "crons": [
-    {
-      "path": "/api/index",
-      "schedule": "0 12 * * *"
-    }
-  ]
+  "outputDirectory": "docs",
+  "buildCommand": "",
+  "installCommand": "",
+  "framework": null,
+  "ignoreCommand": "exit 1"
 }

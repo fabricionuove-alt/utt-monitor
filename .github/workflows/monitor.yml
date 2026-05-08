@@ -43,6 +43,14 @@ jobs:
           git add captions_log.json intel/ docs/index.html 2>/dev/null || true
           git diff --cached --quiet || git commit -m "Actualizar eventos + dashboard [bot]"
           git push
+      - name: Deploy a Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm install -g vercel --silent
+          vercel --prod --yes --token "$VERCEL_TOKEN"
 
   birthdays:
     if: github.event.schedule == '0 9 * * *'
@@ -76,3 +84,11 @@ jobs:
           git add captions_log.json today_fixtures.json intel/ docs/index.html 2>/dev/null || true
           git diff --cached --quiet || git commit -m "Actualizar cumpleaños + partidos + dashboard [bot]"
           git push
+      - name: Deploy a Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm install -g vercel --silent
+          vercel --prod --yes --token "$VERCEL_TOKEN"
